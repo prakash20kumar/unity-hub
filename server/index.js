@@ -35,8 +35,8 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 /* AWS S3 Configuration */
 const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  accessKeyId: process.env.ACCESS_KEY_ID,
+  secretAccessKey: process.env.SECRET_ACCESS_KEY,
 });
 
 /* FILE STORAGE */
@@ -45,7 +45,7 @@ const upload = multer(); // No need to specify storage for S3 uploads
 /* Function to Upload File to S3 */
 const uploadToS3 = (file) => {
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.BUCKET_NAME,
     Key: `img/${file.originalname}`, // Specify the directory path
     Body: file.buffer,
     ACL: "public-read", // Set ACL to allow public read access

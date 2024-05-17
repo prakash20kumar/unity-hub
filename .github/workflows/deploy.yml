@@ -1,0 +1,50 @@
+name: Deploy MERN App
+
+on:
+  push:
+    branches:
+      - master  # Trigger the workflow on pushes to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push server image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./server
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/mern-server:latest
+
+      - name: Build and push client image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./client
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/mern-client:latest
+
+      - name: Get Terraform Output
+        id: terraform_output
+        run: echo "::set-output name=instance_ids::$(terraform output -json instance_ids)"
+        working-directory: ./terraform
+
+      - name: Set instance IDs as secret
+        run: echo "INSTANCE_IDS=${{ steps.terraform_output.outputs.instance_ids }}" >> $GITHUB_ENV
+
+      - name: Update ASG instances
+        uses: aws-actions/aws-ec2-terminate-instance@v1
+        with:
+          instance-ids: ${{ secrets.INSTANCE_IDS }}
