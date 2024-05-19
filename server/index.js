@@ -99,8 +99,9 @@ app.use("/posts", postRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
+const uri = `mongodb://${process.env.DOCUMENTDB_USERNAME}:${process.env.DOCUMENTDB_PASSWORD}@${process.env.DOCUMENTDB_URI}:27017/admin?ssl=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`;
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
