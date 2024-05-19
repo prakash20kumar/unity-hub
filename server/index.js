@@ -35,8 +35,8 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 /* AWS S3 Configuration */
 const s3 = new AWS.S3({
-  accessKeyId: process.env.ACCESS_KEY_ID,
-  secretAccessKey: process.env.SECRET_ACCESS_KEY,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
 /* FILE STORAGE */
@@ -99,9 +99,8 @@ app.use("/posts", postRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
-const uri = `mongodb://${process.env.DOCUMENTDB_USERNAME}:${process.env.DOCUMENTDB_PASSWORD}@${process.env.DOCUMENTDB_URI}:27017/admin?ssl=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`;
 mongoose
-  .connect(uri, {
+  .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

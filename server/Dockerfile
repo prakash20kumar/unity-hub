@@ -14,7 +14,15 @@ RUN npm install
 COPY . .
 
 # Expose the application port
-EXPOSE 5000
+EXPOSE $PORT
+
+# Set environment variables
+ENV MONGO_URL=$MONGO_URL
+ENV PORT=$PORT
+ENV JWT_SECRET=$JWT_SECRET
+ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+ENV BUCKET_NAME=$BUCKET_NAME
 
 # Start the application
 CMD ["npm", "start"]
