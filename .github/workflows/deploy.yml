@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'terraform/files/**'  # Replace with the path to your Terraform files
   workflow_dispatch:
 
 jobs:
