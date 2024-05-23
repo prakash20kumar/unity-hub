@@ -47,6 +47,9 @@ jobs:
           sudo apt-get install -y awscli
 
       - name: Deploy backend to AWS EC2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
@@ -55,8 +58,10 @@ jobs:
             --comment "Deploy backend application" \
             --output text
 
-
       # - name: Deploy frontend to AWS EC2
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #   run: |
       #     aws ssm send-command --document-name "AWS-RunShellScript" \
       #       --targets "Key=tag:Name,Values=unity-hub-frontend" \
