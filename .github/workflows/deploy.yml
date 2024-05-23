@@ -34,6 +34,7 @@ jobs:
             -t ${{ secrets.DOCKER_USERNAME }}/backend:latest ./server
           docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
+      # Uncomment the following lines to build and push the frontend Docker image
       # - name: Build and push frontend Docker image
       #   run: |
       #     docker build \
@@ -45,6 +46,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Fetch EC2 Instance IP
         id: fetch_ip
@@ -74,6 +81,7 @@ jobs:
             docker rm $(docker ps -a -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/backend:latest)
             docker run -d -p 5000:5000 --env-file /path/to/.env ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
+      # Uncomment the following lines to deploy the frontend
       # - name: Deploy frontend to AWS EC2
       #   uses: appleboy/ssh-action@v0.1.6
       #   with:
