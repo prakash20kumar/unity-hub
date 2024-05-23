@@ -69,6 +69,11 @@ jobs:
       - name: Install SSH Client
         run: sudo apt-get install -y openssh-client
 
+      - name: Accept host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
+
       - name: Deploy backend to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
