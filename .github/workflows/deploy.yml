@@ -80,6 +80,7 @@ jobs:
           host: ${{ env.PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          key_type: 'private-key' # Ensure the key type is set
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
             docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/backend:latest)
@@ -93,6 +94,7 @@ jobs:
       #     host: ${{ env.PUBLIC_IP }}
       #     username: ${{ secrets.EC2_USER }}
       #     key: ${{ secrets.EC2_SSH_KEY }}
+      #     key_type: 'private-key'
       #     script: |
       #       docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:latest
       #       docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/frontend:latest)
