@@ -7,6 +7,7 @@ import FriendListWidget from "scenes/widgets/FriendListWidget";
 import MyPostWidget from "scenes/widgets/MyPostWidget";
 import PostsWidget from "scenes/widgets/PostsWidget";
 import UserWidget from "scenes/widgets/UserWidget";
+import axiosInstance from '../../axiosConfig';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -14,20 +15,22 @@ const ProfilePage = () => {
   const token = useSelector((state) => state.token);
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
 
-  const getUser = async () => {
-    const response = await fetch(`http://localhost:8000/users/${userId}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await response.json();
-    setUser(data);
-  };
-
   useEffect(() => {
-    getUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const getUser = async () => {
+      try {
+        const response = await axiosInstance.get(`/users/${userId}`);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
 
-  if (!user) return null;
+    if (userId && token) {
+      getUser();
+    }
+  }, [userId, token]);
+
+  if (!user) return <Box>Loading...</Box>;
 
   return (
     <Box>

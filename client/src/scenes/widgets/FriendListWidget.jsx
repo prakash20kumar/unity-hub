@@ -4,21 +4,16 @@ import WidgetWrapper from "components/WidgetWrapper";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setFriends } from "state";
+import axiosInstance from '../../axiosConfig';
 
 const FriendListWidget = ({ userId }) => {
   const dispatch = useDispatch();
   const { palette } = useTheme();
-  const token = useSelector((state) => state.token);
   const friends = useSelector((state) => state.user.friends);
+  const token = useSelector((state) => state.token);
 
   const getFriends = async () => {
-    const response = await fetch(
-      `http://localhost:8000/users/${userId}/friends`,
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axiosInstance.get(`/users/${userId}/friends`);
     const data = await response.json();
     dispatch(setFriends({ friends: data }));
   };

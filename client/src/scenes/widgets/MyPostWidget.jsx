@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "state";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from '../../axiosConfig';
 
 const MyPostWidget = ({ picturePath }) => {
   const dispatch = useDispatch();
@@ -47,38 +48,24 @@ const MyPostWidget = ({ picturePath }) => {
       formData.append("picture", image);
       formData.append("picturePath", image.name);
     }
-    // UploadingImage();
+
     try {
-      const response = await fetch(`http://localhost:8000/posts`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        // If response status is not ok, throw an error
-        throw new Error(`Failed to upload image: ${response.status}`);
+      const response = await axiosInstance.post("/posts", formData);
+
+      if (!response.data) {
+        throw new Error("Failed to upload image");
       }
-  
-      const posts = await response.json();
-      dispatch(setPosts({ posts }));
+
+      dispatch(setPosts({ posts: response.data }));
       setImage(null);
       setPost("");
+      toast.success("Post Created!");
     } catch (error) {
-      console.error("Error uploading file to S3:", error);
-      // You can handle the error here, e.g., display a toast message
-      throw error; // Re-throw the error to be caught by toast.promise
+      console.error("Error uploading file to server:", error);
+      toast.error("Something went wrong!");
     }
   };
   
-  const handlePostWithToast = () => {
-    toast.promise(handlePost(), {
-      pending: "Creating Post...",
-      success: "Post Created!",
-      error: "Something went wrong!",
-    });
-  };  
-
   return (
     <WidgetWrapper>
       <FlexBetween gap="1.5rem">
@@ -178,7 +165,7 @@ const MyPostWidget = ({ picturePath }) => {
 
         <Button
           disabled={!post}
-          onClick={handlePostWithToast}
+          onClick={handlePost}
           sx={{
             color: palette.background.alt,
             backgroundColor: palette.primary.main,
