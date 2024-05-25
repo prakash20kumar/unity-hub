@@ -10,7 +10,6 @@ const FriendListWidget = ({ userId }) => {
   const dispatch = useDispatch();
   const { palette } = useTheme();
   const friends = useSelector((state) => state.user.friends);
-  const token = useSelector((state) => state.token);
 
   const getFriends = async () => {
     const response = await axiosInstance.get(`/users/${userId}/friends`);
