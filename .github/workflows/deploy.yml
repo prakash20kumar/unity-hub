@@ -82,9 +82,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
-            docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/backend:latest)
-            docker rm $(docker ps -a -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/backend:latest)
-            docker run -d -p 5000:5000 \
+            docker stop unity_backend || true
+            docker rm unity_backend || true
+            docker run -d --name unity_backend -p 5000:5000 \
               -e MONGO_URL="${{ secrets.MONGO_URL }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
@@ -101,8 +101,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-            docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/frontend:latest)
-            docker rm $(docker ps -a -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/frontend:latest)
-            docker run -d -p 3000:3000 \
+            docker stop unity_frontend || true
+            docker rm unity_frontend || true
+            docker run -d --name unity_frontend -p 3000:3000 \
               -e REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
