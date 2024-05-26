@@ -72,7 +72,9 @@ jobs:
         run: |
           docker build \
             --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
-            -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
+            -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest \
+            --no-cache \
+            ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
       - name: Install SSH Client

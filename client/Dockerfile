@@ -1,29 +1,22 @@
-FROM node:14
+# Fetching the latest node image on apline linux
+FROM node:alpine AS builder
 
-# Set the working directory in the container
 
+# Setting up the work directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-
-COPY package*.json ./
-
-# Install project dependencies
-
+# Installing dependencies
+COPY ./package.json ./
 RUN npm install
 
-# Copy the rest of the application code to the working directory
-
+# Copying all the files in our project
 COPY . .
 
-# Build the React application
-
+# Building our application
 RUN npm run build
 
-# Expose the port on which your React app will run (default is 3000)
+# Fetching the latest nginx image
+FROM nginx
 
-# EXPOSE 3000
-
-# # Start the React app
-
-# CMD [“npm”, “start”]
+# Copying built assets from builder
+COPY --from=builder /app/build /usr/share/nginx/html
