@@ -25,5 +25,7 @@ COPY --from=builder /app/build /usr/share/nginx/html
 # Expose port 80 to allow traffic to the Nginx server
 EXPOSE 80
 
+ENV REACT_APP_BASE_URL=$REACT_APP_BASE_URL
+
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
