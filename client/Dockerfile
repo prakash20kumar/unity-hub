@@ -1,31 +1,24 @@
-# Use the latest Node.js image based on Alpine Linux for building the application
+# Fetching the latest node image on Alpine Linux
 FROM node:alpine AS builder
 
-# Set the working directory inside the container
+# Setting up the work directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available) to the working directory
-COPY package.json package-lock.json ./
-
-# Install dependencies
+# Installing dependencies
+COPY ./package.json ./
 RUN npm install
 
-# Copy the rest of the application code to the working directory
+# Copying all the files in our project
 COPY . .
 
-# Build the application
+# Building our application
 RUN npm run build
 
-# Use the latest Nginx image to serve the built application
-FROM nginx:alpine
+# Fetching the latest nginx image
+FROM nginx
 
-# Copy built assets from the builder stage to the appropriate directory in the Nginx container
+# Copying built assets from builder
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Expose port 80 to allow traffic to the Nginx server
-EXPOSE 80
-
-ENV REACT_APP_BASE_URL=$REACT_APP_BASE_URL
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Adding a command to replace the placeholder in the static files with the actual backend IP address
+CMD /bin/sh -c "envsubst '\$REACT_APP_BASE_URL' < /usr/share/nginx/html/index.html > /usr/share/nginx/html/index_temp.html && mv /usr/share/nginx/html/index_temp.html /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
