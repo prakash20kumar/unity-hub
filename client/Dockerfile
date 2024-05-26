@@ -20,4 +20,8 @@ ENV PORT 3000
 
 RUN npm run build
 
-CMD ["npm", "start"]
+# Install serve globally
+RUN npm install -g serve
+
+# Use serve to serve the build directory
+CMD ["serve", "-s", "build", "-l", "3000"]
