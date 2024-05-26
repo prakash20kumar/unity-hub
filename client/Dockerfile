@@ -17,15 +17,11 @@ COPY . ./
 ARG REACT_APP_BASE_URL
 ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
 
-# Ensure the React app listens on all network interfaces
-ENV HOST 0.0.0.0
-ENV PORT 3000
 
 # Build the React application
 RUN npm run build
 
-# Install 'serve' globally
-RUN npm install -g serve
-
-# Use 'serve' to serve the build directory
-CMD ["serve", "-s", "build", "-l", "3000"]
+# # Install 'serve' globally
+EXPOSE 3000
+# Start the app
+CMD [ "npm", "start" ]
