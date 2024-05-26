@@ -1,26 +1,23 @@
-# Stage 1: Build the React app
-FROM node:16-alpine AS build
+# Example Dockerfile for React App
+FROM node:14-alpine
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+COPY package.json ./
+COPY yarn.lock ./
 
-# Install dependencies
-RUN npm install
+RUN yarn install
 
-# Copy the rest of the application
-COPY . .
+COPY . ./
 
-# Build the React app
-RUN npm run build
+# Accept REACT_APP_BASE_URL as a build argument and set it as an environment variable
+ARG REACT_APP_BASE_URL
+ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
 
-# Stage 2: Serve the React app with Nginx
-FROM nginx:alpine
+# Ensure the React app listens on all network interfaces
+ENV HOST 0.0.0.0
+ENV PORT 3000
 
-# Copy the built React app from the previous stage to the Nginx html directory
-COPY --from=build /app/build /usr/share/nginx/html
+RUN yarn build
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["yarn", "start"]

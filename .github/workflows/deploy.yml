@@ -37,7 +37,9 @@ jobs:
 
       - name: Build and push frontend Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
+          docker build \
+            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
+            -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
       - name: Install AWS CLI
@@ -104,3 +106,11 @@ jobs:
             docker run -d --name unity_frontend -p 3000:3000 \
               -e REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+
+      - name: Check Docker Frontend Logs
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.PUBLIC_IP }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: docker logs unity_frontend
