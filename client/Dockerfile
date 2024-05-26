@@ -13,18 +13,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY . ./
 
-# Accept REACT_APP_BASE_URL as a build argument and set it as an environment variable
-ARG REACT_APP_BASE_URL
-ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
-
 # Build the React application
 RUN npm run build
 
-# Install 'serve' globally
-RUN npm install -g serve
-
-# Expose port 3000
-EXPOSE 3000
-
-# Command to serve the built application
-CMD ["serve", "-s", "build"]
+# Start the application
+CMD ["npm", "start"]
