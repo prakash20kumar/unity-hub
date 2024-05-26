@@ -63,6 +63,10 @@ jobs:
             --instance-ids $INSTANCE_ID \
             --query "Reservations[*].Instances[*].PublicIpAddress" \
             --output text)
+          if [ -z "$PUBLIC_IP" ]; then
+            echo "Error: Public IP address not found"
+            exit 1
+          fi
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
       - name: Install SSH Client
