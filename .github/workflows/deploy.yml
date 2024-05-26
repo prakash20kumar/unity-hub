@@ -49,7 +49,7 @@ jobs:
         id: fetch_lb_dns
         run: |
           LB_DNS=$(aws elbv2 describe-load-balancers \
-            --names unity-hub-load-balancer \
+            --names unity-hub-lb \
             --query "LoadBalancers[0].DNSName" \
             --output text)
           echo "LB_DNS=$LB_DNS" >> $GITHUB_ENV
