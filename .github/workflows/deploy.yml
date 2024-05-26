@@ -73,6 +73,10 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
 
+      - name: Copy repository files to EC2 instance
+        run: |
+          scp -r -o StrictHostKeyChecking=no ./* ubuntu@${{ env.PUBLIC_IP }}:/home/ubuntu/compose/
+
       - name: Deploy Docker Compose to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -80,11 +84,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            mkdir -p /home/ubuntu/compose
-            echo "${{ secrets.MONGO_URL }}" > /home/ubuntu/compose/.env
-            echo "${{ secrets.JWT_SECRET }}" >> /home/ubuntu/compose/.env
-            echo "${{ secrets.AWS_ACCESS_KEY_ID }}" >> /home/ubuntu/compose/.env
-            echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> /home/ubuntu/compose/.env
-            echo "${{ secrets.BUCKET_NAME }}" >> /home/ubuntu/compose/.env
-            echo "${{ secrets.REACT_APP_BASE_URL }}" >> /home/ubuntu/compose/.env
+            echo "MONGO_URL=${{ secrets.MONGO_URL }}" > /home/ubuntu/compose/.env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> /home/ubuntu/compose/.env
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> /home/ubuntu/compose/.env
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> /home/ubuntu/compose/.env
+            echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> /home/ubuntu/compose/.env
+            echo "REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL }}" >> /home/ubuntu/compose/.env
             docker-compose -f /home/ubuntu/compose/docker-compose.yml up -d
