@@ -114,5 +114,5 @@ jobs:
             sudo docker stop frontend || true
             sudo docker rm frontend || true
             sudo docker run -d --name frontend -p 80:80 \
-              -e REACT_APP_BASE_URL="https://${{ env.FRONTEND_PUBLIC_IP }}" \
+              -e REACT_APP_BASE_URL="https://${{ env.BACKEND_PUBLIC_IP }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
