@@ -72,7 +72,7 @@ jobs:
         run: |
           docker build \
             --no-cache \
-            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
+            --build-arg REACT_APP_BASE_URL="${{ secrets.BACKEND_PUBLIC_IP }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest \
             ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
