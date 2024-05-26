@@ -36,7 +36,6 @@ jobs:
       - name: Build frontend Docker image
         run: |
           docker build \
-            --build-arg REACT_APP_API_URL="${{ secrets.REACT_APP_API_URL }}" \
             --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
 
