@@ -1,17 +1,24 @@
-# Use the official Node.js 14 image as the base image
-FROM node:14-alpine
+# Fetching the latest node image on apline linux
+FROM node:alpine AS builder
 
-# Set the working directory
+# Declaring env
+ENV NODE_ENV production
+
+# Setting up the work directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
+# Installing dependencies
+COPY ./package.json ./
 RUN npm install
 
-# Copy the rest of the application source code to the working directory
+# Copying all the files in our project
 COPY . .
 
-# Starting our application
-CMD ["npm","start"]
+# Building our application
+RUN npm run build
+
+# Fetching the latest nginx image
+FROM nginx
+
+# Copying built assets from builder
+COPY --from=builder /app/build /usr/share/nginx/html
