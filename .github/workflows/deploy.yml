@@ -117,4 +117,3 @@ jobs:
             sudo docker run -d --name frontend -p 3000:3000 \
               -e REACT_APP_BASE_URL="https://${{ env.FRONTEND_PUBLIC_IP }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-            sudo docker exec -it frontend bash serve -s build -l 3000 -d
