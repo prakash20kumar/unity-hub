@@ -1,11 +1,30 @@
-FROM node:16.3.0-alpine
+# Use the official Node.js 14 image as the base image
+FROM node:14-alpine
 
+# Set the working directory to /app
 WORKDIR /app
 
-COPY package.json .
+# Copy the package.json and package-lock.json files
+COPY package.json package-lock.json ./
 
+# Install dependencies
 RUN npm install
 
-COPY . .
+# Copy the rest of the application code
+COPY . ./
 
-CMD ["npm", "start"]
+# Accept REACT_APP_BASE_URL as a build argument and set it as an environment variable
+ARG REACT_APP_BASE_URL
+ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
+
+# Build the React application
+RUN npm run build
+
+# Install 'serve' globally
+RUN npm install -g serve
+
+# Expose port 3000
+EXPOSE 3000
+
+# Command to serve the built application
+CMD ["serve", "-s", "build", "-l", "3000"]
