@@ -60,15 +60,24 @@ jobs:
       - name: Fetch EC2 Instance IP
         id: fetch_ip
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=unity-hub-instance" \
+          BACKEND_INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=unity-hub-backend" \
             --query "Reservations[*].Instances[*].InstanceId" \
             --output text)
-          PUBLIC_IP=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
+          FRONTEND_INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=unity-hub-frontend" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --output text)
+          BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+            --instance-ids $BACKEND_INSTANCE_ID \
             --query "Reservations[*].Instances[*].PublicIpAddress" \
             --output text)
-          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          FRONTEND_PUBLIC_IP=$(aws ec2 describe-instances \
+            --instance-ids $FRONTEND_INSTANCE_ID \
+            --query "Reservations[*].Instances[*].PublicIpAddress" \
+            --output text)
+          echo "BACKEND_PUBLIC_IP=$BACKEND_PUBLIC_IP" >> $GITHUB_ENV
+          echo "FRONTEND_PUBLIC_IP=$FRONTEND_PUBLIC_IP" >> $GITHUB_ENV
 
       - name: Install SSH Client
         run: sudo apt-get install -y openssh-client
@@ -76,12 +85,12 @@ jobs:
       - name: Accept host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.BACKEND_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
       - name: Deploy backend to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ env.PUBLIC_IP }}
+          host: ${{ env.BACKEND_PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -94,13 +103,12 @@ jobs:
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
               -e BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
-              -e REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
       - name: Deploy frontend to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ env.PUBLIC_IP }}
+          host: ${{ env.FRONTEND_PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
