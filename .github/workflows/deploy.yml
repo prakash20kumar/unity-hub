@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build backend Docker image
+      - name: Build and push backend Docker image
         run: |
           docker build \
             --build-arg MONGO_URL="${{ secrets.MONGO_URL }}" \
@@ -31,47 +31,83 @@ jobs:
             --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --build-arg BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
-            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/backend:latest ./server
+          docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
-      - name: Build frontend Docker image
+      - name: Build and push frontend Docker image
         run: |
           docker build \
             --build-arg REACT_APP_API_URL="${{ secrets.REACT_APP_API_URL }}" \
-            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
-
-      - name: Push Docker images
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
-      - name: Install Docker Compose
+      - name: Install AWS CLI
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker-compose
+          sudo apt-get install -y awscli
 
-      - name: Deploy using Docker Compose
+      - name: Configure AWS CLI
         run: |
-          cat << 'EOF' > docker-compose.yml
-          version: '3.8'
-          services:
-            backend:
-              image: ${{ secrets.DOCKER_USERNAME }}/backend:latest
-              ports:
-                - "5000:5000"
-              environment:
-                MONGO_URL: ${{ secrets.MONGO_URL }}
-                JWT_SECRET: ${{ secrets.JWT_SECRET }}
-                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-                REACT_APP_BASE_URL: ${{ secrets.REACT_APP_BASE_URL }}
-            frontend:
-              image: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-              ports:
-                - "3000:3000"
-              environment:
-                REACT_APP_BASE_URL: ${{ secrets.REACT_APP_BASE_URL }}
-          EOF
-          docker-compose up -d
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Fetch EC2 Instance IP
+        id: fetch_ip
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=unity-hub-web" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --output text)
+          PUBLIC_IP=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[*].Instances[*].PublicIpAddress" \
+            --output text)
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+
+      - name: Install SSH Client
+        run: sudo apt-get install -y openssh-client
+
+      - name: Accept host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy services to AWS EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.PUBLIC_IP }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt-get update
+            sudo apt-get install -y docker.io docker-compose
+
+            # Create docker-compose.yml file on the EC2 instance
+            cat <<EOF > docker-compose.yml
+            version: '3.8'
+
+            services:
+              backend:
+                image: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+                ports:
+                  - "5000:5000"
+                environment:
+                  MONGO_URL: "${{ secrets.MONGO_URL }}"
+                  JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+                  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+                  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+                  BUCKET_NAME: "${{ secrets.BUCKET_NAME }}"
+
+              frontend:
+                image: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+                ports:
+                  - "3000:3000"
+                environment:
+                  REACT_APP_API_URL: "${{ secrets.REACT_APP_API_URL }}"
+            EOF
+
+            # Pull latest images and deploy the services
+            sudo docker-compose down
+            sudo docker-compose pull
+            sudo docker-compose up -d
