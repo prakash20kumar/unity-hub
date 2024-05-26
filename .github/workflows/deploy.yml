@@ -33,11 +33,7 @@ jobs:
             --build-arg BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/backend:latest ./server
 
-      - name: Build frontend Docker image
-        run: |
-          docker build \
-            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
-            -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
+      
 
       - name: Push Docker images
         run: |
@@ -76,6 +72,12 @@ jobs:
             --output text)
           echo "BACKEND_PUBLIC_IP=$BACKEND_PUBLIC_IP" >> $GITHUB_ENV
           echo "FRONTEND_PUBLIC_IP=$FRONTEND_PUBLIC_IP" >> $GITHUB_ENV
+          
+      - name: Build frontend Docker image
+        run: |
+          docker build \
+            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
+            -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./client
 
       - name: Install SSH Client
         run: sudo apt-get install -y openssh-client
