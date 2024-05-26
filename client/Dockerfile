@@ -29,4 +29,4 @@ COPY --from=build /usr/src/app/build /usr/src/app/build
 EXPOSE 3000
 
 # Serve the application
-CMD ["serve", "-s", "build", "-l", "3000", "--no-clipboard", "--single"]
+# CMD ["serve", "-s", "build", "-l", "3000", "--no-clipboard", "--single"]
