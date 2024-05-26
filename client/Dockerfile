@@ -1,22 +1,29 @@
-# Fetching the latest node image on apline linux
-FROM node:alpine
+# Use the latest Node.js image based on Alpine Linux for building the application
+FROM node:alpine AS builder
 
-
-# Setting up the work directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Installing dependencies
-COPY ./package.json ./
+# Copy package.json and package-lock.json (if available) to the working directory
+COPY package.json package-lock.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copying all the files in our project
+# Copy the rest of the application code to the working directory
 COPY . .
 
-# Building our application
+# Build the application
 RUN npm run build
 
-# Fetching the latest nginx image
-FROM nginx
+# Use the latest Nginx image to serve the built application
+FROM nginx:alpine
 
-# Copying built assets from builder
+# Copy built assets from the builder stage to the appropriate directory in the Nginx container
 COPY --from=builder /app/build /usr/share/nginx/html
+
+# Expose port 80 to allow traffic to the Nginx server
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
