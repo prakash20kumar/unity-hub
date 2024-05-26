@@ -4,9 +4,9 @@ FROM node:14-alpine
 WORKDIR /app
 
 COPY package.json ./
-COPY yarn.lock ./
+COPY package-lock.json ./
 
-RUN yarn install
+RUN npm install
 
 COPY . ./
 
@@ -18,6 +18,6 @@ ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
 ENV HOST 0.0.0.0
 ENV PORT 3000
 
-RUN yarn build
+RUN npm run build
 
-CMD ["yarn", "start"]
+CMD ["npm", "start"]
