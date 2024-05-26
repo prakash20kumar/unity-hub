@@ -1,5 +1,5 @@
 # Fetching the latest node image on apline linux
-FROM node:alpine AS builder
+FROM node:alpine
 
 
 # Setting up the work directory
