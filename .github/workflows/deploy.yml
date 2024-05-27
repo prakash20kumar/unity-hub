@@ -45,20 +45,20 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region ${{ secrets.AWS_DEFAULT_REGION }}
 
-      - name: Fetch Load Balancer DNS
-        id: fetch_lb_dns
-        run: |
-          LB_DNS=$(aws elbv2 describe-load-balancers \
-            --names unity-hub-lb \
-            --query "LoadBalancers[0].DNSName" \
-            --output text)
-          echo "LB_DNS=$LB_DNS" >> $GITHUB_ENV
+      # - name: Fetch Load Balancer DNS
+      #   id: fetch_lb_dns
+      #   run: |
+      #     LB_DNS=$(aws elbv2 describe-load-balancers \
+      #       --names unity-hub-lb \
+      #       --query "LoadBalancers[0].DNSName" \
+      #       --output text)
+      #     echo "LB_DNS=$LB_DNS" >> $GITHUB_ENV
 
       - name: Build frontend Docker image
         run: |
           docker build \
             --no-cache \
-            --build-arg REACT_APP_BASE_URL="http://${{ env.LB_DNS }}:8080" \
+            --build-arg REACT_APP_BASE_URL="http://${{ secrets.REACT_APP_BASE_URL }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest \
             ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
@@ -127,5 +127,5 @@ jobs:
             sudo docker stop frontend || true
             sudo docker rm frontend || true
             sudo docker run -d --name frontend -p 80:80 \
-              -e REACT_APP_BASE_URL="http://${{ env.LB_DNS }}:8080" \
+              -e REACT_APP_BASE_URL="http://${{ secrets.REACT_APP_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
