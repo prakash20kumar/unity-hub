@@ -58,7 +58,7 @@ jobs:
         run: |
           docker build \
             --no-cache \
-            --build-arg REACT_APP_BASE_URL="http://${{ secrets.REACT_APP_BASE_URL }}" \
+            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest \
             ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
@@ -127,5 +127,5 @@ jobs:
             sudo docker stop frontend || true
             sudo docker rm frontend || true
             sudo docker run -d --name frontend -p 80:80 \
-              -e REACT_APP_BASE_URL="http://${{ secrets.REACT_APP_BASE_URL }}" \
+              -e REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
