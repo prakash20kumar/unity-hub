@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Create an Axios instance
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL,
+  // baseURL: process.env.REACT_APP_BASE_URL,
+  baseURL: 'http://unity-hub-lb-118668885.ap-south-1.elb.amazonaws.com:8080/',
 });
 
 // Optionally, you can add interceptors to dynamically set the token
