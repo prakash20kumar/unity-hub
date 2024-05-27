@@ -4,7 +4,7 @@ ENV NODE_ENV production
 WORKDIR /app
 # Cache and Install dependencies
 COPY package.json .
-COPY npm.lock .
+
 RUN npm install --production
 # Copy app files
 COPY . .
