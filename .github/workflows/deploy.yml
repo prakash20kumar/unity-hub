@@ -33,36 +33,31 @@ jobs:
             --build-arg BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
             -t ${{ secrets.DOCKER_USERNAME }}/backend:latest ./server
           docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest    
-
       - name: Install AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
-
       - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region ${{ secrets.AWS_DEFAULT_REGION }}
-
-      # - name: Fetch Load Balancer DNS
-      #   id: fetch_lb_dns
-      #   run: |
-      #     LB_DNS=$(aws elbv2 describe-load-balancers \
-      #       --names unity-hub-lb \
-      #       --query "LoadBalancers[0].DNSName" \
-      #       --output text)
-      #     echo "LB_DNS=$LB_DNS" >> $GITHUB_ENV
-
+      - name: Fetch Load Balancer DNS
+        id: fetch_lb_dns
+        run: |
+          LB_DNS=$(aws elbv2 describe-load-balancers \
+            --names unity-hub-lb \
+            --query "LoadBalancers[0].DNSName" \
+            --output text)
+          echo "LB_DNS=$LB_DNS" >> $GITHUB_ENV
       - name: Build frontend Docker image
         run: |
           docker build \
             --no-cache \
-            --build-arg REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
+            --build-arg REACT_APP_BASE_URL="http://${{ env.LB_DNS }}:8080" \
             -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest \
             ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-
       - name: Install SSH Client
         run: sudo apt-get install -y openssh-client
 
@@ -87,12 +82,10 @@ jobs:
             --output text)
           echo "BACKEND_PUBLIC_IP=$BACKEND_PUBLIC_IP" >> $GITHUB_ENV
           echo "FRONTEND_PUBLIC_IP=$FRONTEND_PUBLIC_IP" >> $GITHUB_ENV
-
       - name: Accept backend host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ env.BACKEND_PUBLIC_IP }} >> ~/.ssh/known_hosts
-
       - name: Deploy backend to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -110,12 +103,10 @@ jobs:
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
               -e BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
               ${{ secrets.DOCKER_USERNAME }}/backend:latest
-
       - name: Accept frontend host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ env.FRONTEND_PUBLIC_IP }} >> ~/.ssh/known_hosts
-
       - name: Deploy frontend to AWS EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -127,5 +118,5 @@ jobs:
             sudo docker stop frontend || true
             sudo docker rm frontend || true
             sudo docker run -d --name frontend -p 80:80 \
-              -e REACT_APP_BASE_URL="${{ secrets.REACT_APP_BASE_URL }}" \
+              -e REACT_APP_BASE_URL="http://${{ env.LB_DNS }}:8080" \
               ${{ secrets.DOCKER_USERNAME }}/frontend:latest
