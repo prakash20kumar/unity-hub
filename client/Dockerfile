@@ -16,14 +16,23 @@ COPY . .
 # Build the app
 RUN npm run build
 
-# Fetching the latest nginx image
-FROM nginx:1.21.0-alpine AS production
+# Install serve globally
+RUN npm install -g serve
+
+# Use a lighter image to serve the app
+FROM node:16-alpine AS production
+
+# Add a work directory
+WORKDIR /app
 
 # Copy built assets from builder
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/build ./build
+
+# Install serve globally in the production image
+RUN npm install -g serve
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application
+CMD ["serve", "-s", "build", "-l", "3000"]
