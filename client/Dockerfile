@@ -1,11 +1,14 @@
-# Fetching the latest node image on Alpine Linux
+# Fetching the latest node image on apline linux
 FROM node:alpine AS builder
+
+# Declaring env
+ENV NODE_ENV production
 
 # Setting up the work directory
 WORKDIR /app
 
 # Installing dependencies
-COPY package.json package-lock.json ./
+COPY ./package.json ./
 RUN npm install
 
 # Copying all the files in our project
@@ -15,10 +18,10 @@ COPY . .
 RUN npm run build
 
 # Fetching the latest nginx image
-FROM nginx:alpine
+FROM nginx
 
 # Copying built assets from builder
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Adding a command to replace the placeholder in the static files with the actual backend IP address
-CMD ["/bin/sh", "-c", "envsubst '\$REACT_APP_BASE_URL' < /usr/share/nginx/html/index.html > /usr/share/nginx/html/index_temp.html && mv /usr/share/nginx/html/index_temp.html /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
+# Copying our nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
